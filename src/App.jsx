@@ -61,6 +61,31 @@ function App() {
     }
   };
 
+  // Cập nhật bài viết
+  const handleUpdateArticle = async (updatedArticle) => {
+    try {
+      // Gọi API mô phỏng cập nhật
+      await exampleApi.updatePost(updatedArticle.id, updatedArticle);
+      // Cập nhật state
+      setPosts(posts.map(post => post.id === updatedArticle.id ? updatedArticle : post));
+    } catch (err) {
+      alert('Không thể cập nhật bài viết: ' + err.message);
+    }
+  };
+
+  // Xóa bài viết
+  const handleDeleteArticle = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xoá bài viết này?')) return;
+    try {
+      // Gọi API mô phỏng xoá
+      await exampleApi.deletePost(id);
+      // Cập nhật state
+      setPosts(posts.filter(post => post.id !== id));
+    } catch (err) {
+      alert('Không thể xoá bài viết: ' + err.message);
+    }
+  };
+
   return (
     <div className="dashboard">
       <header className="header">
@@ -163,7 +188,12 @@ function App() {
       ) : (
         <div style={{ width: '100%' }}>
           {error && <p style={{ color: 'var(--danger)', marginBottom: '1rem', background: 'rgba(255, 71, 87, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--danger)' }}>⚠ Lỗi tải danh sách: {error}</p>}
-          <ArticleTable articles={posts} loading={loading} />
+          <ArticleTable 
+            articles={posts} 
+            loading={loading} 
+            onUpdate={handleUpdateArticle}
+            onDelete={handleDeleteArticle}
+          />
         </div>
       )}
     </div>

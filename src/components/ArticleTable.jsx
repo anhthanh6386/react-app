@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import './ArticleTable.css';
 
-export default function ArticleTable({ articles = [], loading = false }) {
+export default function ArticleTable({ articles = [], loading = false, onUpdate, onDelete }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingArticleId, setEditingArticleId] = useState(null);
+  const [editFormData, setEditFormData] = useState({ title: '', body: '' });
+
   const itemsPerPage = 8;
 
   const totalPages = Math.ceil(articles.length / itemsPerPage);
@@ -12,6 +15,27 @@ export default function ArticleTable({ articles = [], loading = false }) {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleEditClick = (article) => {
+    setEditingArticleId(article.id);
+    setEditFormData({ title: article.title, body: article.body });
+  };
+
+  const handleCancelClick = () => {
+    setEditingArticleId(null);
+  };
+
+  const handleSaveClick = () => {
+    if (onUpdate) {
+      const original = articles.find(a => a.id === editingArticleId);
+      onUpdate({ ...original, ...editFormData });
+    }
+    setEditingArticleId(null);
+  };
+
+  const handleEditChange = (e) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
   };
 
   return (
@@ -58,13 +82,43 @@ export default function ArticleTable({ articles = [], loading = false }) {
               currentArticles.map(article => (
                 <tr key={article.id}>
                   <td style={{ color: 'var(--text-secondary)' }}>#{article.id}</td>
-                  <td className="table-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{article.title}</td>
-                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-secondary)' }}>{article.body}</td>
-                  <td>User {article.userId}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button className="btn-action btn-edit">Sửa</button>
-                    <button className="btn-action btn-delete">Xoá</button>
-                  </td>
+                  {editingArticleId === article.id ? (
+                    <>
+                      <td className="table-title">
+                        <input 
+                          type="text" 
+                          name="title"
+                          value={editFormData.title} 
+                          onChange={handleEditChange}
+                          className="inline-edit-input"
+                        />
+                      </td>
+                      <td>
+                        <textarea 
+                          name="body"
+                          value={editFormData.body} 
+                          onChange={handleEditChange}
+                          className="inline-edit-input"
+                          rows="2"
+                        />
+                      </td>
+                      <td>User {article.userId}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button className="btn-action btn-edit" onClick={handleSaveClick}>Lưu</button>
+                        <button className="btn-action" onClick={handleCancelClick} style={{ background: 'var(--surface-color)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>Huỷ</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="table-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{article.title}</td>
+                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-secondary)' }}>{article.body}</td>
+                      <td>User {article.userId}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button className="btn-action btn-edit" onClick={() => handleEditClick(article)}>Sửa</button>
+                        <button className="btn-action btn-delete" onClick={() => onDelete && onDelete(article.id)}>Xoá</button>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))
             )}

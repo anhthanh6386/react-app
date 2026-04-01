@@ -20,6 +20,18 @@ const exampleApi = {
   createPost: (data) => {
     const url = '/posts';
     return axiosClient.post(url, data);
+  },
+
+  // Cập nhật post
+  updatePost: (id, data) => {
+    const url = `/posts/${id}`;
+    return axiosClient.put(url, data);
+  },
+
+  // Xóa post
+  deletePost: (id) => {
+    const url = `/posts/${id}`;
+    return axiosClient.delete(url);
   }
 };
 
