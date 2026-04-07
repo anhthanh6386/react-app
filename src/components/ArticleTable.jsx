@@ -1,37 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './ArticleTable.css';
+
+const PAGE_SIZE_OPTIONS = [5, 8, 10, 15, 20];
 
 export default function ArticleTable({ articles = [], loading = false, onUpdate, onDelete }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingArticleId, setEditingArticleId] = useState(null);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingArticle, setEditingArticle] = useState(null);
   const [editFormData, setEditFormData] = useState({ title: '', body: '' });
 
-  const itemsPerPage = 8;
+  const totalPages =
+    articles.length === 0 ? 0 : Math.ceil(articles.length / itemsPerPage);
 
-  const totalPages = Math.ceil(articles.length / itemsPerPage);
-  
+  useEffect(() => {
+    if (articles.length === 0) {
+      setCurrentPage(1);
+      return;
+    }
+    const maxPage = Math.ceil(articles.length / itemsPerPage) || 1;
+    setCurrentPage((p) => Math.min(p, maxPage));
+  }, [articles.length, itemsPerPage]);
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentArticles = articles.slice(startIndex, startIndex + itemsPerPage);
+
+  const rangeLabel = useMemo(() => {
+    if (articles.length === 0) return '';
+    const from = startIndex + 1;
+    const to = Math.min(startIndex + itemsPerPage, articles.length);
+    return `Hiển thị ${from}–${to} / ${articles.length} bài`;
+  }, [articles.length, startIndex, itemsPerPage]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
+  const handlePageSizeChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
   const handleEditClick = (article) => {
-    setEditingArticleId(article.id);
+    setEditingArticle(article);
     setEditFormData({ title: article.title, body: article.body });
+    setShowEditModal(true);
   };
 
   const handleCancelClick = () => {
-    setEditingArticleId(null);
+    setShowEditModal(false);
+    setEditingArticle(null);
   };
 
-  const handleSaveClick = () => {
-    if (onUpdate) {
-      const original = articles.find(a => a.id === editingArticleId);
-      onUpdate({ ...original, ...editFormData });
+  const handleSaveClick = (e) => {
+    if (e) e.preventDefault();
+    if (onUpdate && editingArticle) {
+      onUpdate({ ...editingArticle, ...editFormData });
     }
-    setEditingArticleId(null);
+    setShowEditModal(false);
+    setEditingArticle(null);
   };
 
   const handleEditChange = (e) => {
@@ -82,43 +109,13 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
               currentArticles.map(article => (
                 <tr key={article.id}>
                   <td style={{ color: 'var(--text-secondary)' }}>#{article.id}</td>
-                  {editingArticleId === article.id ? (
-                    <>
-                      <td className="table-title">
-                        <input 
-                          type="text" 
-                          name="title"
-                          value={editFormData.title} 
-                          onChange={handleEditChange}
-                          className="inline-edit-input"
-                        />
-                      </td>
-                      <td>
-                        <textarea 
-                          name="body"
-                          value={editFormData.body} 
-                          onChange={handleEditChange}
-                          className="inline-edit-input"
-                          rows="2"
-                        />
-                      </td>
-                      <td>User {article.userId}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button className="btn-action btn-edit" onClick={handleSaveClick}>Lưu</button>
-                        <button className="btn-action" onClick={handleCancelClick} style={{ background: 'var(--surface-color)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}>Huỷ</button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="table-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{article.title}</td>
-                      <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-secondary)' }}>{article.body}</td>
-                      <td>User {article.userId}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button className="btn-action btn-edit" onClick={() => handleEditClick(article)}>Sửa</button>
-                        <button className="btn-action btn-delete" onClick={() => onDelete && onDelete(article.id)}>Xoá</button>
-                      </td>
-                    </>
-                  )}
+                  <td className="table-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{article.title}</td>
+                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-secondary)' }}>{article.body}</td>
+                  <td>User {article.userId}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="btn-action btn-edit" onClick={() => handleEditClick(article)}>Sửa</button>
+                    <button className="btn-action btn-delete" onClick={() => onDelete && onDelete(article.id)}>Xoá</button>
+                  </td>
                 </tr>
               ))
             )}
@@ -126,40 +123,119 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button 
-            onClick={() => handlePageChange(currentPage - 1)} 
-            disabled={currentPage === 1}
-            className="page-btn"
-          >
-            Trước
-          </button>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-            if (page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2)) {
-              return (
-                <button 
-                  key={page} 
-                  onClick={() => handlePageChange(page)}
-                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
-                >
-                  {page}
-                </button>
-              );
-            } else if (page === currentPage - 3 || page === currentPage + 3) {
-              return <span key={page} style={{ alignSelf: 'center', color: 'var(--text-secondary)' }}>...</span>;
-            }
-            return null;
-          })}
+      {!loading && articles.length > 0 && (
+        <div className="pagination-section">
+          <div className="pagination-toolbar">
+            <span className="pagination-range">{rangeLabel}</span>
+            <label className="pagination-page-size">
+              <span>Số bài / trang</span>
+              <select
+                className="pagination-select"
+                value={itemsPerPage}
+                onChange={handlePageSizeChange}
+                aria-label="Số bài viết mỗi trang"
+              >
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="pagination">
+            <button
+              type="button"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="page-btn"
+            >
+              Trước
+            </button>
 
-          <button 
-            onClick={() => handlePageChange(currentPage + 1)} 
-            disabled={currentPage === totalPages}
-            className="page-btn"
-          >
-            Sau
-          </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 2 && page <= currentPage + 2)
+              ) {
+                return (
+                  <button
+                    type="button"
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  >
+                    {page}
+                  </button>
+                );
+              }
+              if (page === currentPage - 3 || page === currentPage + 3) {
+                return (
+                  <span
+                    key={`ellipsis-${page}`}
+                    className="pagination-ellipsis"
+                    aria-hidden
+                  >
+                    …
+                  </span>
+                );
+              }
+              return null;
+            })}
+
+            <button
+              type="button"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="page-btn"
+            >
+              Sau
+            </button>
+            <span className="pagination-page-hint">
+              Trang {currentPage} / {totalPages}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={handleCancelClick}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Chỉnh sửa bài viết #{editingArticle?.id}</h3>
+              <button className="close-btn" onClick={handleCancelClick}>&times;</button>
+            </div>
+            <form onSubmit={handleSaveClick} className="modal-form">
+              <div className="form-group">
+                <label>Tiêu đề</label>
+                <input 
+                  type="text" 
+                  name="title"
+                  value={editFormData.title} 
+                  onChange={handleEditChange}
+                  className="modal-input"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Nội dung</label>
+                <textarea 
+                  name="body"
+                  value={editFormData.body} 
+                  onChange={handleEditChange}
+                  className="modal-input"
+                  rows="6"
+                  required
+                />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={handleCancelClick}>Huỷ</button>
+                <button type="submit" className="btn-primary">Lưu thay đổi</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
