@@ -65,6 +65,27 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
     setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
   };
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingArticleId, setDeletingArticleId] = useState(null);
+
+  const handleDeleteClick = (id) => {
+    setDeletingArticleId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (onDelete && deletingArticleId) {
+      onDelete(deletingArticleId);
+    }
+    setShowDeleteModal(false);
+    setDeletingArticleId(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingArticleId(null);
+  };
+
   return (
     <div className="glass-panel table-container">
       <div className="table-header-custom">
@@ -114,7 +135,7 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
                   <td>User {article.userId}</td>
                   <td style={{ textAlign: 'right' }}>
                     <button className="btn-action btn-edit" onClick={() => handleEditClick(article)}>Sửa</button>
-                    <button className="btn-action btn-delete" onClick={() => onDelete && onDelete(article.id)}>Xoá</button>
+                    <button className="btn-action btn-delete" onClick={() => handleDeleteClick(article.id)}>Xoá</button>
                   </td>
                 </tr>
               ))
@@ -235,6 +256,35 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
                 <button type="submit" className="btn-primary">Lưu thay đổi</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '20px', color: 'var(--danger)' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--light-text-p)', marginBottom: '10px' }}>Xác nhận Xoá</h3>
+            <p style={{ color: 'var(--light-text-s)', marginBottom: '24px' }}>
+              Bạn có chắc chắn muốn xoá bài viết <strong style={{ color: 'var(--light-text-p)' }}>#{deletingArticleId}</strong> này? Thao tác này sẽ gọi xuống đường dẫn API <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', color: 'var(--accent-primary)' }}>/posts/{deletingArticleId}</code> và không thể hoàn tác.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button className="btn-secondary" onClick={cancelDelete} style={{ flex: 1 }}>Huỷ bỏ</button>
+              <button 
+                className="btn-primary" 
+                onClick={confirmDelete} 
+                style={{ flex: 1, backgroundColor: 'var(--danger)', boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)' }}
+              >
+                Xoá ngay
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -36,7 +36,6 @@ const AdminArticles = () => {
   };
 
   const handleDeleteArticle = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xoá bài viết này?')) return;
     try {
       // Gọi API mô phỏng xoá
       await exampleApi.deletePost(id);
