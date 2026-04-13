@@ -85,10 +85,10 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
         <table className="custom-table" style={{ tableLayout: 'fixed' }}>
           <thead>
             <tr>
-              <th style={{ width: '80px' }}>ID</th>
-              <th style={{ width: '30%' }}>Tiêu đề</th>
-              <th style={{ width: '35%' }}>Nội dung tóm tắt</th>
-              <th style={{ width: '10%' }}>Tác giả</th>
+              <th style={{ width: '5%', textAlign: 'left' }}>ID</th>
+              <th style={{ width: '30%', textAlign: 'left' }}>Tiêu đề</th>
+              <th style={{ width: '40%', textAlign: 'left' }}>Nội dung tóm tắt</th>
+              <th style={{ width: '10%', textAlign: 'left' }}>Tác giả</th>
               <th style={{ textAlign: 'right', width: '15%' }}>Hành động</th>
             </tr>
           </thead>
@@ -108,9 +108,9 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
             ) : (
               currentArticles.map(article => (
                 <tr key={article.id}>
-                  <td style={{ color: 'var(--text-secondary)' }}>#{article.id}</td>
+                  <td style={{ color: 'var(--light-text-s)' }}>#{article.id}</td>
                   <td className="table-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{article.title}</td>
-                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-secondary)' }}>{article.body}</td>
+                  <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--light-text-s)' }}>{article.body}</td>
                   <td>User {article.userId}</td>
                   <td style={{ textAlign: 'right' }}>
                     <button className="btn-action btn-edit" onClick={() => handleEditClick(article)}>Sửa</button>
