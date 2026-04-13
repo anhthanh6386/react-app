@@ -52,13 +52,24 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
     setEditingArticle(null);
   };
 
+  const [showConfirmEditModal, setShowConfirmEditModal] = useState(false);
+
   const handleSaveClick = (e) => {
     if (e) e.preventDefault();
+    setShowConfirmEditModal(true);
+  };
+
+  const confirmEdit = () => {
     if (onUpdate && editingArticle) {
       onUpdate({ ...editingArticle, ...editFormData });
     }
+    setShowConfirmEditModal(false);
     setShowEditModal(false);
     setEditingArticle(null);
+  };
+
+  const cancelConfirmEdit = () => {
+    setShowConfirmEditModal(false);
   };
 
   const handleEditChange = (e) => {
@@ -256,6 +267,33 @@ export default function ArticleTable({ articles = [], loading = false, onUpdate,
                 <button type="submit" className="btn-primary">Lưu thay đổi</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Confirmation Modal */}
+      {showConfirmEditModal && (
+        <div className="modal-overlay" onClick={cancelConfirmEdit} style={{ zIndex: 1010 }}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '20px', color: 'var(--accent-primary)' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--light-text-p)', marginBottom: '10px' }}>Xác nhận Cập nhật</h3>
+            <p style={{ color: 'var(--light-text-s)', marginBottom: '24px' }}>
+              Bạn có chắc chắn muốn lưu lại các thay đổi cho bài viết <strong style={{ color: 'var(--light-text-p)' }}>#{editingArticle?.id}</strong>? Thao tác này sẽ cập nhật dữ liệu của bạn trên hệ thống.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button className="btn-secondary" onClick={cancelConfirmEdit} style={{ flex: 1 }}>Quay lại form</button>
+              <button 
+                className="btn-primary" 
+                onClick={confirmEdit} 
+                style={{ flex: 1 }}
+              >
+                Xác nhận
+              </button>
+            </div>
           </div>
         </div>
       )}
