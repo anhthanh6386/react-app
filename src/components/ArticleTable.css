@@ -89,7 +89,7 @@
 .btn-action {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
-  margin-left: 0.5rem;
+  margin-left: 0;
   background: transparent;
   border: 1px solid var(--light-border);
   color: var(--light-text-p);
@@ -97,6 +97,15 @@
   box-shadow: none;
   font-weight: 600;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  width: 36px;
+  height: 36px;
 }
 
 .btn-edit {
